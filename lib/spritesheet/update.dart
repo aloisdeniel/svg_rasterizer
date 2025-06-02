@@ -153,9 +153,13 @@ Future<Spritesheet?> rasterizeSheet(
   required List<PlatformFile> files,
   required List<int> sizeVariants,
   required double pixelRatio,
-  int maxWidth = 2048,
+  int? maxWidth,
   ui.ImageByteFormat? format,
 }) async {
+  final effectiveMaxWidth = switch (pixelRatio) {
+    >= 2.0 => 4096,
+    _ => 2048,
+  };
   final recorder = ui.PictureRecorder();
   final canvas = ui.Canvas(recorder);
   var offset = Offset(1, 1);
@@ -205,11 +209,11 @@ Future<Spritesheet?> rasterizeSheet(
       }
       // If last icon, we force line return
       if (i == files.length - 1) {
-        offset += Offset(maxWidth.toDouble(), 0);
+        offset += Offset(effectiveMaxWidth.toDouble(), 0);
       } else {
         offset += Offset(size + 1, 0);
       }
-      if (offset.dx + size + 1 >= maxWidth) {
+      if (offset.dx + size + 1 >= effectiveMaxWidth) {
         offset = Offset(0, offset.dy + size + 1);
       }
       sheetsize = Size(

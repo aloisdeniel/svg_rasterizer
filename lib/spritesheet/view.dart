@@ -1,8 +1,8 @@
 // ignore_for_file: sort_child_properties_last
 
-import 'package:flutter/foundation.dart';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:recase/recase.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:svg_rasterizer/app/state.dart';
 import 'package:svg_rasterizer/app/view.dart';
@@ -131,7 +131,6 @@ class Completed extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fileName = ReCase(state.name).snakeCase;
     return Toolbar(
       actions: [
         ShadButton.destructive(
@@ -149,26 +148,22 @@ class Completed extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          for (var ratio in state.results.entries)
+          for (var file in state.archive.files)
             ShadCard(
-              title: Text(
-                  'assets/images/${ratio.key == 1.0 ? '' : ('${ratio.key.toStringAsFixed(1)}x/')}$fileName.png'),
+              title: Text(file.name),
               description: Text(
-                  '${ratio.value.width}x${ratio.value.height} | ${(ratio.value.bytes.lengthInBytes / 1024).toStringAsFixed(2)}kb'),
-              child: Image.memory(
-                Uint8List.sublistView(ratio.value.bytes),
-              ),
+                  '${(file.content.lengthInBytes / 1024).toStringAsFixed(2)}kb'),
+              child: switch (file.name.split('.').last) {
+                'png' => Image.memory(file.content),
+                _ => SelectableText(
+                    utf8.decode(file.content),
+                    style: TextStyle(
+                      fontFamily: 'console',
+                      color: Colors.white,
+                    ),
+                  ),
+              },
             ),
-          ShadCard(
-            title: Text('lib/src/$fileName.dart'),
-            child: SelectableText(
-              state.dartCode,
-              style: TextStyle(
-                fontFamily: 'console',
-                color: Colors.white,
-              ),
-            ),
-          ),
         ],
       ),
     );
